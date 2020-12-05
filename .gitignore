@@ -1,2 +1,5 @@
 node_modules/
 dbconfig.js
+*.pyc
+scripts/config.py
+scripts/US_Accidents_June20.csv

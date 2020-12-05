@@ -5,10 +5,6 @@ const port = process.env.PORT || 3556;
 // console.log that your server is up and running
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
-// create a GET route
-app.get('/express_backend', (req, res) => {
-  res.send({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' });
-});
 
 process.env.ORA_SDTZ = 'UTC';
 
@@ -23,16 +19,19 @@ try {
   process.exit(1);
 }
 
-async function query(sql) {
-    let connection;
+makeQueryRoutes();
+console.log("Done making query routes!");
 
+
+async function makeQueryRoutes() {
+    let connection;
     try {
 
         let sql, binds, options, result;
     
         connection = await oracledb.getConnection(dbConfig);
 
-        sql = `SELECT * FROM ETHNICGROUP`; //TODO DELETE THIS PRIOR TO DEPLOYMENT
+        sql = `SELECT * FROM JFM.ACCIDENT WHERE severity > 3`; //TODO DELETE THIS PRIOR TO DEPLOYMENT
 
         binds = {};
 
@@ -51,6 +50,11 @@ async function query(sql) {
         console.log("Query results: ");
         console.dir(result.rows, { depth: null });
 
+        app.get('/express_backend', (req, res) => {
+          res.send({ express:  result.rows});
+        });
+
+
     } catch (err) {
         console.error(err);
     } finally {
@@ -62,6 +66,6 @@ async function query(sql) {
         }
     }
     }
+
 }
 
-query("");

@@ -19,14 +19,32 @@ state = {
   callBackendAPI = async () => {
     const response = await fetch('/express_backend');
     const body = await response.json();
-
     if (response.status !== 200) {
       throw Error(body.message) 
     }
     return body;
   };
 
+  
   render() {
+    console.log("Hello browser");
+    const {data} = this.state;
+    if(data) {
+      var dataItem = data.map((item) => <li>{item.ID}</li>);
+      console.log(dataItem)
+
+      return (
+        <div>
+          <MainPage />
+          <ul>{dataItem}</ul>
+        </div>
+      );
+
+    }
+
+
+    console.log(data)
+
     return (
       <div>
         <MainPage />

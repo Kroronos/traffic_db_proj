@@ -1,7 +1,7 @@
 import Chart from "react-google-charts";
 import React from 'react';
 
-export const Trendline = () => {
+export const Trendline = (props) => {
     return (
         <>
             <Chart
