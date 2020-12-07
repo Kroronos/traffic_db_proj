@@ -1,15 +1,12 @@
 
 /*Accidents per Month vs Time, for severe accidents at roundabouts (Graph/Trendline format)*/
-SELECT COUNT(aid) as AccidentPerMonth, FORMAT(Time.startTime, 'yyyy_MM') as AccidentDate
+SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, EXTRACT(MONTH FROM accidentTime.startTime) as STARTMONTH
 FROM Accident
-    INNER JOIN Time ON (Accident.aid = Time.aid)
-    INNER JOIN Features ON (Accident.aid = Features.aid)
-WHERE Accident.severity > 3 AND
-    Features.roundabout = 1
-GROUP BY DATEPART(YEAR,  Time.startTime), DATEPART(MONTH,  Time.startTime);
+    INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), EXTRACT(MONTH FROM accidentTime.startTime);
 
 /*Accidents per Month vs Time By State, for severe accidents at roundabouts (Map format)*/
-SELECT COUNT(*), EXTRACT(YEAR FROM accidentTime.startTime), EXTRACT(MONTH FROM accidentTime.startTime), locationAddress.state as usState
+SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, EXTRACT(MONTH FROM accidentTime.startTime) as STARTMONTH, locationAddress.state as USSTATE
 FROM Accident
     INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
     INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
