@@ -9,7 +9,7 @@ export const Navbar = () => {
                     <NavLogo to='/'>Accident Trends</NavLogo>
                     <NavMenu>
                         <NavItem>
-                            <NavLinks to='/explore'>Explore </NavLinks>
+                            <NavLinks to='/explore'>Contribute </NavLinks>
                         </NavItem>
                         <NavItem>
                             <NavLinks to='/sources'>Sources </NavLinks>

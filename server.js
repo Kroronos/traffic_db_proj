@@ -74,7 +74,7 @@ app.get('/tuples_count', async (req, res) => {
   
       connection = await oracledb.getConnection(dbConfig);
 
-      sql = `SELECT COUNT(*) as TupleCount FROM JFM.ACCIDENT`;
+      sql = `SELECT ACCIDENTCOUNT, LOCATIONCOUNT FROM (SELECT COUNT(*) as AccidentCount FROM JFM.ACCIDENT), (SELECT COUNT(*) as LocationCount FROM JFM.LOCATION)`;
 
       binds = {};
 
