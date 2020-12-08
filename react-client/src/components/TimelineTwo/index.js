@@ -9,68 +9,43 @@ import Image from 'react-bootstrap/Image'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 
-class Timeline extends Component {
+class TimelineTwo extends Component {
     constructor() {
         super();
         this.state = {
-            signQuery: 'stop',
             dataLoadingStatus: 'loading',
             chartData: null,
             chartDataTwo: null,
+            chartDataThree: null,
         };
     }
 
-    getSignName(item) {
-        let items = new Map([
-            ['noExit','No Exit'],
-            ['stop', 'Stop'],
-            ['giveWay', 'Give Way']
-
-        ]);
-
-        return items.get(item);
-
-    }
-    setSignName(item) {
-        let items = new Map([
-            ['No Exit', 'noExit'],
-            ['Stop', 'stop'],
-            ['Give Way', 'giveWay']
-        ]);
-
-        console.log("Item val ")
-        console.log(item);
-        if(item[0]) {
-            var convertedItem = items.get(item[0].value);
-            this.setState({signQuery: convertedItem, dataLoadingStatus: 'loading'});
-            this.componentDidMount();
-        }
-    }
 
 
     componentDidMount() {
         // Call our fetch function below once the component mounts
         this.callBackendAPI()
-          .then(res => this.setState({ dataLoadingStatus: 'ready', chartData: (res.express.map((item) => ['Most Dangerous', item.WINNINGPERIOD, new Date(item.STARTYEAR, item.STARTMONTH, 1), new Date(item.STARTYEAR, item.STARTMONTH+1, 0)])), chartDataTwo: (res.express.map((item) => ['Second Most Dangerous', (item.SECONDWINNINGPERIOD) ? item.SECONDWINNINGPERIOD : "No Data", new Date(item.STARTYEAR, item.STARTMONTH, 1), new Date(item.STARTYEAR, item.STARTMONTH+1, 0)]))
+          .then(res => this.setState({ dataLoadingStatus: 'ready', chartData: (res.express.map((item) => ['First Most', item.CITY, new Date(item.STARTYEAR, 1, 1), new Date(item.STARTYEAR+1, 0, 0)]))
+          , chartDataTwo: (res.express.map((item) =>  ['Second Most', item.CITY2, new Date(item.STARTYEAR, 1, 1), new Date(item.STARTYEAR+1, 0, 0)]))
+          , chartDataThree: (res.express.map((item) =>  ['Third Most', item.CITY3, new Date(item.STARTYEAR, 1, 1), new Date(item.STARTYEAR+1, 0, 0)]))
         }))
           .catch(err => console.log(err));
     }
     
     // Fetches our GET route from the Express server. (Note the route we are fetching matches the GET route from server.js
     callBackendAPI = async () => {
-        ///numberOfAccidentsByStateFeature?state='+ this.state.stateQuery +' &feature='+this.state.featureQuery
-        const response = await fetch('/rankingOfTimePeriodBySign?sign='+ this.state.signQuery);
+        const response = await fetch('/rankCities');
         const body = await response.json();
         if (response.status !== 200) {
             throw Error(body.message) 
         }
-        console.log("query =" + '/rankingOfTimePeriodBySign?sign='+ this.state.signQuery)
-        console.log("Timeline res " + body);
+
+        console.log("Timeline2 res " + body);
         return body;
     };
     render() {
         if(this.state.chartData && this.state.chartData.length > 0 && this.state.dataLoadingStatus === 'ready') {
-
+            console.log("THREE " + this.state.chartDataThree);
             var chartData = [[{type: 'string', id: 'Placement'}, {type: 'string', id: 'Time'}, {type: 'date', id: 'Start'}, {type: 'date', id: 'End'}]];
             for(var index = 0; index < this.state.chartData.length; index++) {
                 chartData = chartData.concat([this.state.chartData[index]]);
@@ -84,33 +59,21 @@ class Timeline extends Component {
 
             }
 
+            if(this.state.chartDataThree && this.state.chartDataThree.length > 0) {
+                for(var j = 0; j < this.state.chartDataThree.length; j++) {
+                    chartData = chartData.concat([this.state.chartDataThree[j]]);
+                }
+
+            }
+
             console.log(this.state.chartData);
             console.log(chartData);
             
-            let signItems = [
-                { id: 0, value: 'Stop'},
-                { id: 1, value: 'No Exit' },
-                { id: 2, value: 'Give Way' },
-              ]
-
-            var signName = this.getSignName(this.state.signQuery);
-            console.log(signName);
 
             return(
                 <>
                 <Container className="p-3 justify-content-center">
-                <Row>
-                    <Col>
-                    <div>
-                    <Search items={signItems}
-                    placeholder='Pick a sign'
-                    maxSelected={1}
-                    multiple={false}
-                    onItemsChanged={this.setSignName.bind(this)} />
-                    </div>
-                    </Col>
-                </Row>
-            <Row className="p-3 justify-content-center"><h3>Times Where Accidents Happen Most At {signName} Signs</h3></Row>
+            <Row className="p-3 justify-content-center"><h3>Top Three Cities With The Most Accidents Per Year</h3></Row>
                 <Row className="justify-content-md-center"> 
                 <Chart
                 backgroundColor='#808080'
@@ -120,7 +83,7 @@ class Timeline extends Component {
                 options={{
                     width: 1000,
                     height: 300,
-                    title: 'Most Dangerous Times To Drive',
+                    title: 'Top Three Cities With The Most Accidents Per Year',
                     'chartArea': {
                         'backgroundColor': {
                             'fill': '#F4F4F4',
@@ -172,4 +135,4 @@ class Timeline extends Component {
 
 }
 
-export default Timeline;
+export default TimelineTwo;

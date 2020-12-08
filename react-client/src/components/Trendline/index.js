@@ -48,8 +48,8 @@ class Trendline extends Component {
                 loader={<div>Loading Chart</div>}
                 data={chartData}
                 options={{
-                    width: 500,
-                    height: 300,
+                    width: 1000,
+                    height: 600,
                     title: 'Number of Accidents vs Time',
                     crosshair: { trigger: 'both', orientation: 'both' },
                     trendlines: {
@@ -86,8 +86,8 @@ class Trendline extends Component {
         return (
             <>
             <Chart
-            width={'500px'}
-            height={'300px'}
+            width={'1000px'}
+            height={'600px'}
             chartType="ScatterChart"
             loader={<div>Loading Chart</div>}
             data={[['Date', 'Accidents'], [new Date(2019, 1), 100], [new Date(2019, 2), 200], [new Date(2019, 3), 300], [new Date(2019, 4), 600],

@@ -59,3 +59,13 @@ export const NavLinks = styled(Link)`
     height: 100%;
     cursor: pointer;
 `
+
+export const NavExtLinks = styled.a`
+    color: #fff;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    padding: 0 1rem;
+    height: 100%;
+    cursor: pointer;
+`

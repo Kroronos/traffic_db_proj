@@ -6,7 +6,6 @@ import ReactDOM from 'react-dom';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
 
 import App from './App';
-import ExplorationPage from './components/pages/ExplorationPage';
 import SourcesPage from './components/pages/SourcesPage';
 
 import { Navbar } from './components/Navbar';
@@ -18,7 +17,6 @@ ReactDOM.render(
     <div>
       <Navbar></Navbar>
       <Route exact path='/' component={App} />
-      <Route path="/explore" component={ExplorationPage} />
       <Route path="/sources" component={SourcesPage} />
   </div>
   </Router>,

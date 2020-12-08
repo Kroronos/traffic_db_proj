@@ -2,25 +2,26 @@ import Chart from "react-google-charts";
 import React, { Component } from 'react';
 
 
-class Barchart extends Component {
+class AreaChart extends Component {
     constructor() {
         super();
         this.state = {
             dataLoadingStatus: 'loading',
             chartData: null,
+            chartTitle: null,
         };
     }
 
     componentDidMount() {
         // Call our fetch function below once the component mounts
         this.callBackendAPI()
-          .then(res => this.setState({ dataLoadingStatus: 'ready', chartData: (res.express.map((item) => [new Date(item.STARTYEAR, item.STARTMONTH), item.DELTAACCIDENTS]))}))
+          .then(res => this.setState({ dataLoadingStatus: 'ready', chartTitle: (res.express.map((item) => ['Date', item.CITY, item.CITY2, item.CITY3])),chartData: (res.express.map((item) => [new Date(item.STARTYEAR, 0), item.ACCIDENTCOUNT, item.ACCIDENTCOUNT2, item.ACCIDENTCOUNT3]))}))
           .catch(err => console.log(err));
     }
     
     // Fetches our GET route from the Express server. (Note the route we are fetching matches the GET route from server.js
     callBackendAPI = async () => {
-        const response = await fetch('/delta');
+        const response = await fetch('/stackedCities');
         const body = await response.json();
         if (response.status !== 200) {
             throw Error(body.message) 
@@ -31,7 +32,7 @@ class Barchart extends Component {
     render() {
         if(this.state.chartData && this.state.dataLoadingStatus === 'ready') {
 
-            var chartData = [['Date', 'Accidents']];
+            var chartData = [this.state.chartTitle[0]];
             for(var index = 0; index < this.state.chartData.length; index++) {
                 chartData = chartData.concat([this.state.chartData[index]]);
             }
@@ -44,27 +45,21 @@ class Barchart extends Component {
                 <>
                 <Chart
                 backgroundColor='#808080'
-                chartType="BarChart"
+                chartType="AreaChart"
                 loader={<div>Loading Chart</div>}
                 data={chartData}
                 options={{
                     width: 1000,
                     height: 600,
-                    title: 'Monthly Change in the Number of Accidents',
+                    title: 'Accidents In Three Cities',
                     'chartArea': {
                         'backgroundColor': {
                             'fill': '#F4F4F4',
                             'opacity': 100
                          },       
                     },
-                    hAxis: {
-                        title: 'Number of Accidents'
-                    },
-                    vAxis: {
-                        title: 'Date'
-                    }
                 }}
-                rootProps={{ 'data-testid': '3' }}
+                rootProps={{ 'data-testid': '2' }}
                 chartPackages={['corechart', 'controls']}
                 controls ={[
                     {
@@ -121,4 +116,4 @@ class Barchart extends Component {
 
 }
 
-export default Barchart;
+export default AreaChart;

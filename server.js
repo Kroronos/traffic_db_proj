@@ -19,6 +19,225 @@ try {
   process.exit(1);
 }
 
+
+app.get('/windyAccidents', async(req, res) => {
+  let connection;
+  try {
+
+      let sql, binds, options, result;
+  
+      connection = await oracledb.getConnection(dbConfig);
+      console.log("Req:")
+      console.dir(req.query)
+      sql = `SELECT COUNT(*) as ACCIDENTCOUNT, locationAddress.state as STATE
+      FROM Accident
+          INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+          INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+          INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+          INNER JOIN experiences ON (Accident.atStartLatitude = experiences.startLatitude AND Accident.atStartLongitude = experiences.startLongitude)
+          INNER JOIN windCondition ON (windCondition.weatherTimestamp = experiences.weatherTimestamp)
+      WHERE EXTRACT(YEAR FROM accidentTime.startTime)  =` + req.query.startYear +` AND windSpeed > 20
+      GROUP BY locationAddress.state`
+
+          binds = {};
+
+          // For a complete list of options see the documentation.
+          options = {
+          outFormat: oracledb.OUT_FORMAT_OBJECT,   // query result format
+          // extendedMetaData: true,               // get extra metadata
+          // prefetchRows:     100,                // internal buffer allocation size for tuning
+          // fetchArraySize:   100                 // internal buffer allocation size for tuning
+          };
+    
+          result = await connection.execute(sql, binds, options);
+          console.log("Query: " + sql)
+          console.log("Metadata: ");
+          console.dir(result.metaData, { depth: null });
+          console.log("delta results: ");
+          console.dir(result.rows, { depth: null });
+    
+          res.send({ express:  result.rows});
+      } catch (err) {
+          console.error(err);
+      } finally {
+      if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+      }
+      }
+
+});
+
+app.get('/stackedCities', async(req, res) => {
+  let connection;
+  try {
+
+      let sql, binds, options, result;
+  
+      connection = await oracledb.getConnection(dbConfig);
+      console.log("Req:")
+      console.dir(req.query)
+
+      sql = `SELECT STARTYEAR, CITY, ACCIDENTCOUNT, CITY2, ACCIDENTCOUNT2, CITY3, ACCIDENTCOUNT3
+      FROM
+          (SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, locationAddress.city as CITY
+          FROM Accident
+              INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+              INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+              INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+          GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+          HAVING COUNT(*) > 1),
+          (SELECT COUNT(*) as ACCIDENTCOUNT2, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR2, locationAddress.city as CITY2
+          FROM Accident
+              INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+              INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+              INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+          GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+          HAVING COUNT(*) > 1),
+          (SELECT COUNT(*) as ACCIDENTCOUNT3, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR3, locationAddress.city as CITY3
+          FROM Accident
+              INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+              INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+              INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+          GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+          HAVING COUNT(*) > 1)
+      WHERE STARTYEAR = STARTYEAR2 AND STARTYEAR2 = STARTYEAR3 AND CITY = 'Houston' AND CITY2 = 'Dallas' AND CITY3 = 'Los Angeles'
+      ORDER BY STARTYEAR ASC
+      `;
+
+          binds = {};
+
+          // For a complete list of options see the documentation.
+          options = {
+          outFormat: oracledb.OUT_FORMAT_OBJECT,   // query result format
+          // extendedMetaData: true,               // get extra metadata
+          // prefetchRows:     100,                // internal buffer allocation size for tuning
+          // fetchArraySize:   100                 // internal buffer allocation size for tuning
+          };
+    
+          result = await connection.execute(sql, binds, options);
+          console.log("Query: " + sql)
+          console.log("Metadata: ");
+          console.dir(result.metaData, { depth: null });
+          console.log("delta results: ");
+          console.dir(result.rows, { depth: null });
+    
+          res.send({ express:  result.rows});
+      } catch (err) {
+          console.error(err);
+      } finally {
+      if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+      }
+      }
+
+});
+
+app.get('/rankCities', async(req, res) => {
+  let connection;
+  try {
+
+      let sql, binds, options, result;
+  
+      connection = await oracledb.getConnection(dbConfig);
+      console.log("Req:")
+      console.dir(req.query)
+
+      sql = `SELECT STARTYEAR, CITY, CITY2, CITY3
+      FROM 
+          (SELECT STARTYEAR as STARTYEARMAX, MAX(ACCIDENTSUM)AS MAXSUM
+          FROM(SELECT STARTYEAR, (ACCIDENTCOUNT + ACCIDENTCOUNT2 + ACCIDENTCOUNT3) as ACCIDENTSUM
+              FROM
+                  (SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, locationAddress.city as CITY
+                  FROM Accident
+                      INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                      INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                      INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+                  GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+                  HAVING COUNT(*) > 1500),
+                  (SELECT COUNT(*) as ACCIDENTCOUNT2, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR2, locationAddress.city as CITY2
+                  FROM Accident
+                      INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                      INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                      INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+                  GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+                  HAVING COUNT(*) > 1500),
+                  (SELECT COUNT(*) as ACCIDENTCOUNT3, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR3, locationAddress.city as CITY3
+                  FROM Accident
+                      INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                      INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                      INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+                  GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+                  HAVING COUNT(*) > 1500)
+              WHERE STARTYEAR = STARTYEAR2 AND STARTYEAR2 = STARTYEAR3 AND CITY != CITY2 AND CITY !=CITY3 AND CITY2 != CITY3
+              AND ACCIDENTCOUNT > ACCIDENTCOUNT2 AND ACCIDENTCOUNT2 > ACCIDENTCOUNT3)
+          GROUP BY STARTYEAR),
+          (SELECT STARTYEAR, ACCIDENTCOUNT, CITY, ACCIDENTCOUNT2, CITY2, ACCIDENTCOUNT3, CITY3
+              FROM
+                  (SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, locationAddress.city as CITY
+                  FROM Accident
+                      INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                      INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                      INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+                  GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+                  HAVING COUNT(*) > 1500),
+                  (SELECT COUNT(*) as ACCIDENTCOUNT2, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR2, locationAddress.city as CITY2
+                  FROM Accident
+                      INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                      INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                      INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+                  GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+                  HAVING COUNT(*) > 1500),
+                  (SELECT COUNT(*) as ACCIDENTCOUNT3, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR3, locationAddress.city as CITY3
+                  FROM Accident
+                      INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                      INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                      INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+                  GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+                  HAVING COUNT(*) > 1500)
+              WHERE STARTYEAR = STARTYEAR2 AND STARTYEAR2 = STARTYEAR3 AND CITY != CITY2 AND CITY !=CITY3 AND CITY2 != CITY3
+              AND ACCIDENTCOUNT > ACCIDENTCOUNT2 AND ACCIDENTCOUNT2 > ACCIDENTCOUNT3)
+          WHERE STARTYEARMAX = STARTYEAR AND (ACCIDENTCOUNT + ACCIDENTCOUNT2 + ACCIDENTCOUNT3) = MAXSUM`;
+
+          binds = {};
+
+          // For a complete list of options see the documentation.
+          options = {
+          outFormat: oracledb.OUT_FORMAT_OBJECT,   // query result format
+          // extendedMetaData: true,               // get extra metadata
+          // prefetchRows:     100,                // internal buffer allocation size for tuning
+          // fetchArraySize:   100                 // internal buffer allocation size for tuning
+          };
+    
+          result = await connection.execute(sql, binds, options);
+          console.log("Query: " + sql)
+          console.log("Metadata: ");
+          console.dir(result.metaData, { depth: null });
+          console.log("delta results: ");
+          console.dir(result.rows, { depth: null });
+    
+          res.send({ express:  result.rows});
+      } catch (err) {
+          console.error(err);
+      } finally {
+      if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+      }
+      }
+
+});
+
 app.get('/delta', async(req, res) => {
   let connection;
   try {
@@ -29,7 +248,7 @@ app.get('/delta', async(req, res) => {
       console.log("Req:")
       console.dir(req.query)
 
-      sql = `SELECT ((AccidentPerMonth) - (AccidentPerMonth2)) as DeltaAccidents, STARTYEAR, STARTMONTH
+      sql = `SELECT ((AccidentPerMonth2) -(AccidentPerMonth)) as DeltaAccidents, STARTYEAR, STARTMONTH
       FROM 
           (SELECT COUNT(*) as AccidentPerMonth, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, EXTRACT(MONTH FROM accidentTime.startTime) as STARTMONTH
           FROM Accident

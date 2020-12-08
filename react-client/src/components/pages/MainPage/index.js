@@ -5,11 +5,16 @@ import Container from 'react-bootstrap/Container'
 import Image from 'react-bootstrap/Image'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import Button from 'react-bootstrap/Button'
+
 
 import Timeline from '../../Timeline';
+import TimelineTwo from '../../TimelineTwo';
 import Barchart from '../../Barchart';
 import Trendline from '../../Trendline';
 import TrendlineTwo from '../../TrendlineTwo';
+import AreaChart from '../../AreaChart';
+import Geochart from '../../Geochart';
 
 
 class MainPage extends Component {
@@ -37,6 +42,9 @@ class MainPage extends Component {
     return body;
   };
 
+  handleClick = () => this.componentDidMount();
+
+
   render() {
 
     
@@ -49,7 +57,7 @@ class MainPage extends Component {
             but by using data about accidents we can understand trends related to them. These trends can help grant insight into why accidents happen and may give hints as to how we may be able to prevent them.
           </p>
   
-          <Container className="p-3 d-flex justify-content-center">
+          <Container className="p-3 justify-content-center">
           <Row className="p-3 d-flex justify-content-center">
             <Col md="auto" className="p-3 d-flex justify-content-center">
               <Container>
@@ -71,6 +79,9 @@ class MainPage extends Component {
               </Row>
               </Container>
             </Col>
+          </Row>
+          <Row className="p-3 d-flex justify-content-center">
+            <Button variant="primary" onClick={this.handleClick}>Refresh Database</Button>{' '}
           </Row>
         </Container>
   
@@ -94,6 +105,20 @@ class MainPage extends Component {
               <Timeline></Timeline>
           </Container>
         </Jumbotron>
+
+        <Container className="p-3 justify-content-center">
+            <TimelineTwo></TimelineTwo>
+        </Container>
+
+        <Jumbotron>
+          <Container className="p-3 d-flex justify-content-center">
+              <AreaChart></AreaChart>
+          </Container>
+        </Jumbotron>
+
+        <Container className="p-3 justify-content-center">
+            <Geochart></Geochart>
+        </Container>
 
         </>
       );

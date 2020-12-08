@@ -1,3 +1,5 @@
+/*TIME PERIOD RANKING*/
+
 CREATE OR REPLACE VIEW astronomicalTwilight AS
 SELECT COUNT(*) as astronomicalTwilightCount, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, EXTRACT(MONTH FROM accidentTime.startTime) as STARTMONTH
 FROM Accident
@@ -100,3 +102,63 @@ FROM(
     FULL OUTER JOIN nauticalTwilight ON
         nauticalTwilight.STARTYEAR = astronomicalTwilight.STARTYEAR AND nauticalTwilight.STARTMONTH = astronomicalTwilight.STARTMONTH)
 WHERE STARTYEAR IS NOT NULL AND STARTMONTH IS NOT NULL AND WINNINGPERIOD IS NOT NULL;
+
+
+/*CITY RANKING*/
+
+
+SELECT STARTYEAR, CITY, CITY2, CITY3
+FROM 
+    (SELECT STARTYEAR as STARTYEARMAX, MAX(ACCIDENTSUM)AS MAXSUM
+    FROM(SELECT STARTYEAR, (ACCIDENTCOUNT + ACCIDENTCOUNT2 + ACCIDENTCOUNT3) as ACCIDENTSUM
+        FROM
+            (SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, locationAddress.city as CITY
+            FROM Accident
+                INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+            GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+            HAVING COUNT(*) > 1500),
+            (SELECT COUNT(*) as ACCIDENTCOUNT2, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR2, locationAddress.city as CITY2
+            FROM Accident
+                INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+            GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+            HAVING COUNT(*) > 1500),
+            (SELECT COUNT(*) as ACCIDENTCOUNT3, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR3, locationAddress.city as CITY3
+            FROM Accident
+                INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+            GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+            HAVING COUNT(*) > 1500)
+        WHERE STARTYEAR = STARTYEAR2 AND STARTYEAR2 = STARTYEAR3 AND CITY != CITY2 AND CITY !=CITY3 AND CITY2 != CITY3
+        AND ACCIDENTCOUNT > ACCIDENTCOUNT2 AND ACCIDENTCOUNT2 > ACCIDENTCOUNT3)
+    GROUP BY STARTYEAR),
+    (SELECT STARTYEAR, ACCIDENTCOUNT, CITY, ACCIDENTCOUNT2, CITY2, ACCIDENTCOUNT3, CITY3
+        FROM
+            (SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, locationAddress.city as CITY
+            FROM Accident
+                INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+            GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+            HAVING COUNT(*) > 1500),
+            (SELECT COUNT(*) as ACCIDENTCOUNT2, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR2, locationAddress.city as CITY2
+            FROM Accident
+                INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+            GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+            HAVING COUNT(*) > 1500),
+            (SELECT COUNT(*) as ACCIDENTCOUNT3, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR3, locationAddress.city as CITY3
+            FROM Accident
+                INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+                INNER JOIN Location ON (Accident.atStartLatitude = Location.startLatitude AND Accident.atStartLongitude = Location.startLongitude)
+                INNER JOIN locationAddress ON (locationAddress.startLatitude = Location.startLatitude AND locationAddress.startLongitude = Location.startLongitude)
+            GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), locationAddress.city
+            HAVING COUNT(*) > 1500)
+        WHERE STARTYEAR = STARTYEAR2 AND STARTYEAR2 = STARTYEAR3 AND CITY != CITY2 AND CITY !=CITY3 AND CITY2 != CITY3
+        AND ACCIDENTCOUNT > ACCIDENTCOUNT2 AND ACCIDENTCOUNT2 > ACCIDENTCOUNT3)
+    WHERE STARTYEARMAX = STARTYEAR AND (ACCIDENTCOUNT + ACCIDENTCOUNT2 + ACCIDENTCOUNT3) = MAXSUM
