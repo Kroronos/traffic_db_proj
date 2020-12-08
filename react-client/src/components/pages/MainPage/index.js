@@ -6,6 +6,7 @@ import Image from 'react-bootstrap/Image'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 
+import Timeline from '../../Timeline';
 import Barchart from '../../Barchart';
 import Trendline from '../../Trendline';
 import TrendlineTwo from '../../TrendlineTwo';
@@ -87,6 +88,12 @@ class MainPage extends Component {
         <Container className="p-3 justify-content-center">
             <TrendlineTwo></TrendlineTwo>
         </Container>
+
+        <Jumbotron>
+          <Container className="p-3 d-flex justify-content-center">
+              <Timeline></Timeline>
+          </Container>
+        </Jumbotron>
 
         </>
       );
