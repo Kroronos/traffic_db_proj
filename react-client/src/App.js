@@ -5,49 +5,21 @@ import { Navbar } from './components/Navbar';
 import MainPage from './components/pages/MainPage';
 
 class App extends Component {
-state = {
-    data: null
-  };
-
-  componentDidMount() {
-      // Call our fetch function below once the component mounts
-    this.callBackendAPI()
-      .then(res => this.setState({ data: res.express }))
-      .catch(err => console.log(err));
+  
+  constructor() {
+    super();
+    this.state = {
+      data: null
+    };
   }
-    // Fetches our GET route from the Express server. (Note the route we are fetching matches the GET route from server.js
-  callBackendAPI = async () => {
-    const response = await fetch('/express_backend');
-    const body = await response.json();
-    if (response.status !== 200) {
-      throw Error(body.message) 
-    }
-    return body;
-  };
 
   
   render() {
     console.log("Hello browser");
-    const {data} = this.state;
-    if(data) {
-      var dataItem = data.map((item) => <li>{item.ID}</li>);
-      console.log(dataItem)
-
-      return (
-        <div>
-          <MainPage />
-          <ul>{dataItem}</ul>
-        </div>
-      );
-
-    }
-
-
-    console.log(data)
 
     return (
       <div>
-        <MainPage />
+        <MainPage count= {0}/>
       </div>
     );
   }

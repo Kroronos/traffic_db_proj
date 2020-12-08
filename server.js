@@ -19,53 +19,97 @@ try {
   process.exit(1);
 }
 
-makeQueryRoutes();
-console.log("Done making query routes!");
+app.get('/accidentsvstime', async (req, res) => {
 
+  let connection;
+  try {
 
-async function makeQueryRoutes() {
-    let connection;
-    try {
+      let sql, binds, options, result;
+  
+      connection = await oracledb.getConnection(dbConfig);
 
-        let sql, binds, options, result;
-    
-        connection = await oracledb.getConnection(dbConfig);
+      sql = `SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, EXTRACT(MONTH FROM accidentTime.startTime) as STARTMONTH
+      FROM JFM.Accident
+          INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+      GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), EXTRACT(MONTH FROM accidentTime.startTime)`;
 
-        sql = `SELECT * FROM JFM.ACCIDENT WHERE severity > 3`; //TODO DELETE THIS PRIOR TO DEPLOYMENT
+      binds = {};
 
-        binds = {};
+      // For a complete list of options see the documentation.
+      options = {
+      outFormat: oracledb.OUT_FORMAT_OBJECT,   // query result format
+      // extendedMetaData: true,               // get extra metadata
+      // prefetchRows:     100,                // internal buffer allocation size for tuning
+      // fetchArraySize:   100                 // internal buffer allocation size for tuning
+      };
 
-        // For a complete list of options see the documentation.
-        options = {
-        outFormat: oracledb.OUT_FORMAT_OBJECT,   // query result format
-        // extendedMetaData: true,               // get extra metadata
-        // prefetchRows:     100,                // internal buffer allocation size for tuning
-        // fetchArraySize:   100                 // internal buffer allocation size for tuning
-        };
+      result = await connection.execute(sql, binds, options);
 
-        result = await connection.execute(sql, binds, options);
+      console.log("Metadata: ");
+      console.dir(result.metaData, { depth: null });
+      console.log("Query results: ");
+      console.dir(result.rows, { depth: null });
 
-        console.log("Metadata: ");
-        console.dir(result.metaData, { depth: null });
-        console.log("Query results: ");
-        console.dir(result.rows, { depth: null });
-
-        app.get('/express_backend', (req, res) => {
-          res.send({ express:  result.rows});
-        });
-
-
-    } catch (err) {
-        console.error(err);
-    } finally {
-    if (connection) {
-        try {
+      res.send({ express:  result.rows});
+  } catch (err) {
+      console.error(err);
+  } finally {
+  if (connection) {
+      try {
         await connection.close();
-        } catch (err) {
+      } catch (err) {
         console.error(err);
-        }
-    }
-    }
+      }
+  }
+  }
 
-}
+});
+
+app.get('/tuples_count', async (req, res) => {
+
+  let connection;
+  try {
+
+      let sql, binds, options, result;
+  
+      connection = await oracledb.getConnection(dbConfig);
+
+      sql = `SELECT COUNT(*) as TupleCount FROM JFM.ACCIDENT`;
+
+      binds = {};
+
+      // For a complete list of options see the documentation.
+      options = {
+      outFormat: oracledb.OUT_FORMAT_OBJECT,   // query result format
+      // extendedMetaData: true,               // get extra metadata
+      // prefetchRows:     100,                // internal buffer allocation size for tuning
+      // fetchArraySize:   100                 // internal buffer allocation size for tuning
+      };
+
+      result = await connection.execute(sql, binds, options);
+
+      console.log("Metadata: ");
+      console.dir(result.metaData, { depth: null });
+      console.log("Query results: ");
+      console.dir(result.rows, { depth: null });
+
+      res.send({ express:  result.rows});
+  } catch (err) {
+      console.error(err);
+  } finally {
+  if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error(err);
+      }
+  }
+  }
+
+});
+
+
+
+
+console.log("Done making query routes!");
 
