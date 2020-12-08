@@ -6,8 +6,10 @@ import Image from 'react-bootstrap/Image'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 
-
+import Barchart from '../../Barchart';
 import Trendline from '../../Trendline';
+import TrendlineTwo from '../../TrendlineTwo';
+
 
 class MainPage extends Component {
   
@@ -43,7 +45,7 @@ class MainPage extends Component {
         <Jumbotron>
           <h1>Accidents happen</h1>
           <p>
-            but using data about accidents we can understand trends related to them. These trends can help grant insight into why accidents happen and may give hints as to how we may be able to prevent them.
+            but by using data about accidents we can understand trends related to them. These trends can help grant insight into why accidents happen and may give hints as to how we may be able to prevent them.
           </p>
   
           <Container className="p-3 d-flex justify-content-center">
@@ -78,12 +80,14 @@ class MainPage extends Component {
   
         <Jumbotron>
           <Container className="p-3 d-flex justify-content-center">
-            <Trendline></Trendline>
+              <Barchart></Barchart>
           </Container>
         </Jumbotron>
-        <Container className="p-3 d-flex justify-content-center">
-            <Trendline></Trendline>
-          </Container>
+
+        <Container className="p-3 justify-content-center">
+            <TrendlineTwo></TrendlineTwo>
+        </Container>
+
         </>
       );
     }

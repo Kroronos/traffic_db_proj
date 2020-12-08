@@ -1,5 +1,5 @@
 
-/*Accidents per Month vs Time, for severe accidents at roundabouts (Graph/Trendline format)*/
+/*Accidents per Month vs Time*/
 SELECT COUNT(*) as ACCIDENTCOUNT, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, EXTRACT(MONTH FROM accidentTime.startTime) as STARTMONTH
 FROM Accident
     INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
@@ -16,28 +16,27 @@ WHERE Accident.severity > 1 AND
     roadFeatures.roundabout = 1
 GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), EXTRACT(MONTH FROM accidentTime.startTime), locationAddress.state;
 
-/*Change in Accidents Per Month By State*/
-SELECT (AccidentPerMonth) - (AccidentPerMonth2)) as DeltaAccidents, AccidentDate, usState
+/*Change in Accidents Per Month*/
+SELECT ((AccidentPerMonth) - (AccidentPerMonth2)) as DeltaAccidents, STARTYEAR, STARTMONTH
 FROM 
-    (SELECT COUNT(aid) as AccidentPerMonth, FORMAT(Time.startTime, 'yyyy_MM') as AccidentDate, Location.state as usState
+    (SELECT COUNT(*) as AccidentPerMonth, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR, EXTRACT(MONTH FROM accidentTime.startTime) as STARTMONTH
     FROM Accident
-    INNER JOIN Time ON (Accident.aid = Time.aid)
-    GROUP BY DATEPART(YEAR,  Time.startTime), DATEPART(MONTH,  Time.startTime), Location.state),
-
-    (SELECT COUNT(aid) as AccidentPerMonth2, FORMAT(Time.startTime, 'yyyy_MM') as AccidentDate2, Location.state as usState2
+    INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+    GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), EXTRACT(MONTH FROM accidentTime.startTime)),
+    (SELECT COUNT(*) as AccidentPerMonth2, EXTRACT(YEAR FROM accidentTime.startTime) as STARTYEAR2, EXTRACT(MONTH FROM accidentTime.startTime) as STARTMONTH2
     FROM Accident
-    INNER JOIN Time ON (Accident.aid = Time.aid)
-    GROUP BY DATEPART(YEAR,  Time.startTime), DATEPART(MONTH,  Time.startTime), Location.state)
-WHERE usState = usState 2 AND
+    INNER JOIN accidentTime ON (Accident.startTime = accidentTime.startTime AND Accident.endTime = accidentTime.endTime)
+    GROUP BY EXTRACT(YEAR FROM accidentTime.startTime), EXTRACT(MONTH FROM accidentTime.startTime))
+    WHERE
     (
         (
-            DATEPART(MONTH,  Time.accidentDate) = (DATEPART(MONTH,  Time.accidentDate2) - 1) AND /*month 2 is predecessor of month 1*/
-            DATEPART(YEAR,  Time.accidentDate) = DATEPART(YEAR,  Time.accidentDate2) /*if month2 is predecessor then eyars must be equal*/
+            STARTMONTH = (STARTMONTH2 - 1) AND /*month 2 is predecessor of month 1*/
+            STARTYEAR = STARTYEAR2 /*if month2 is predecessor then eyars must be equal*/
         ) OR
         (
-            DATEPART(MONTH,  Time.accidentDate2) = 12 AND /*month 2 is December*/
-            DATEPART(MONTH,  Time.accidentDate) = 1 AND /*month 1 is January*/
-            DATEPART(YEAR,  Time.accidentDate) = (DATEPART(YEAR,  Time.accidentDate2) - 1) /*if month2 December and month1 is Jan the year of month 2 must pred(year of month 1)*/
+            STARTMONTH2 = 12 AND /*month 2 is December*/
+            STARTMONTH = 1 AND /*month 1 is January*/
+            STARTYEAR = (STARTYEAR2 - 1) /*if month2 December and month1 is Jan the year of month 2 must pred(year of month 1)*/
         )
     ) 
 ;
